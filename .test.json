@@ -1,0 +1,149 @@
+[
+  {
+    "_id": "653923d7d0e70c93189c6c19",
+    "index": 0,
+    "guid": "b8ac9359-9e31-41b6-b029-a46c4d011f7d",
+    "isActive": false,
+    "balance": "$1,813.78",
+    "picture": "http://placehold.it/32x32",
+    "age": 37,
+    "eyeColor": "blue",
+    "name": "Mamie Calderon",
+    "gender": "female",
+    "company": "GEEKOSIS",
+    "email": "mamiecalderon@geekosis.com",
+    "phone": "+1 (839) 405-3545",
+    "address": "501 High Street, Roderfield, New Mexico, 360",
+    "about": "Non laboris tempor ullamco aliqua officia mollit amet. Commodo culpa est est duis fugiat commodo voluptate sunt proident consequat eiusmod. Consectetur duis magna qui laboris commodo voluptate aliquip id est tempor ipsum. Pariatur ex quis elit labore est.\r\n",
+    "registered": "2021-12-30T03:11:13 -01:00",
+    "latitude": -78.82145,
+    "longitude": 92.730176,
+    "tags": [
+      "ut",
+      "eu",
+      "qui",
+      "sunt",
+      "et",
+      "ea",
+      "ex"
+    ],
+    "friends": [
+      {
+        "id": 0,
+        "name": "Tate Mercer",
+        "friends": [
+          {
+            "id": 0,
+            "name": "Carly Roach",
+            "friends": [
+              {
+                "id": 0,
+                "name": "Emily Simpson",
+                "friends": [
+                  {
+                    "id": 0,
+                    "name": "Inez Whitney"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 1,
+            "name": "Cole Booker",
+            "friends": [
+              {
+                "id": 0,
+                "name": "Melendez Dunlap",
+                "friends": [
+                  {
+                    "id": 0,
+                    "name": "Potts Lott"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "name": "Whitney Downs",
+        "friends": [
+          {
+            "id": 0,
+            "name": "Keisha Melton",
+            "friends": [
+              {
+                "id": 0,
+                "name": "Reed Franklin",
+                "friends": [
+                  {
+                    "id": 0,
+                    "name": "Sofia Kemp"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 1,
+            "name": "Simon Justice",
+            "friends": [
+              {
+                "id": 0,
+                "name": "Hendricks Delacruz",
+                "friends": [
+                  {
+                    "id": 0,
+                    "name": "Joanne Hill"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Pam Garner",
+        "friends": [
+          {
+            "id": 0,
+            "name": "Knapp Hess",
+            "friends": [
+              {
+                "id": 0,
+                "name": "Malinda Barton",
+                "friends": [
+                  {
+                    "id": 0,
+                    "name": "Robles Vang"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 1,
+            "name": "Araceli Myers",
+            "friends": [
+              {
+                "id": 0,
+                "name": "Roy Alston",
+                "friends": [
+                  {
+                    "id": 0,
+                    "name": "Barbra Lloyd"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "greeting": "Hello, Mamie Calderon! You have 2 unread messages.",
+    "favoriteFruit": "apple"
+  }
+]
