@@ -5,6 +5,11 @@ build-backend = 'setuptools.build_meta'
 [project]
 name = "wtf"
 version = "0.2.0"
+description = "Quickly find out useful info about Python objects, Without The Fine documentation."
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+]
 
 [tool.setuptools]
 py-modules = ["wtf"]
