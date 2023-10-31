@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from collections import namedtuple, OrderedDict
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 import xml.etree.ElementTree
 from pathlib import Path
@@ -301,6 +302,8 @@ class WTF:
                     detail_code_lines_per_case[case_code] = detail_code_lines
 
                 source_var_name = self._name or 'items'
+                seen_all_items = False
+                start = datetime.now()
                 for item in self.x:
                     match item:
                         case dict():
@@ -312,13 +315,16 @@ class WTF:
                             # TODO: list()
                         case _:
                             add_case(f'{type(item).__name__}({item})')
+                    if datetime.now() - start > timedelta(seconds=2):
+                        seen_all_items = False
+                        break
                 scaffolding = f'''for {item_var_name} in {source_var_name}:
     match {item_var_name}:
 '''
                 for case_code, num_matches in cases.items():
                     detail_code = '\n'.join(detail_code_lines_per_case[case_code])
                     scaffolding += f"""        case {case_code}:
-            # Would match {num_matches} {item_var_name}s.
+            # Would match{seen_all_items and '' or ' at least'} {num_matches} {item_var_name}s.
 {detail_code}
 """
                 if case_ != '':
