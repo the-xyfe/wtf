@@ -11,6 +11,7 @@ import inspect
 import pprint
 import json
 import pdb
+import bdb
 import sys
 import re
 import io
@@ -500,6 +501,8 @@ sys.modules[__name__] = wtf
 
 # Replace the default excepthook to drop into a debugger and get extra Exception info when an exception is not caught.
 def wtf_excepthook(type, value, trace_back):
+    if type == bdb.BdbQuit:
+        return
     traceback.print_tb(trace_back)
     print(wtf[value])
     p = pdb.Pdb(skip=['wtf'])

@@ -122,7 +122,13 @@ print()
 
 try:
     j = json.loads('''{"foo":
-            42}''')
+            '42}''')
+except Exception as json_decode_error:
+    show("json_decode_error")
+
+try:
+    j = json.loads('''{"foo":
+            '42}''')
 except Exception as json_decode_error:
     show_code("json_decode_error")
 
