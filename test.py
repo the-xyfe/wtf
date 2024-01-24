@@ -13,6 +13,10 @@ logging.getLogger().setLevel(logging.INFO)
 print('Re-importing with debug logging disabled. This should print WTF.')
 importlib.reload(wtf)
 
+sensitive = 'foo'
+sensitive = wtf.is_happening_with(sensitive)
+reversed(sensitive)
+
 
 class A:
     pass
@@ -30,6 +34,7 @@ class C(B, A):
     def attribute_property(self):
         pass
 
+wtf[C()].browse()
 
 def show(string_of_x):
     print('-' * 100)
@@ -119,6 +124,8 @@ print('-' * 100)
 print(""">>> wtf.find(huge_nested_object, 'descriptionTxt')""")
 wtf(huge_nested_object).find('descriptionTxt')
 print()
+
+wtf[huge_nested_object].browse()
 
 try:
     j = json.loads('''{"foo":

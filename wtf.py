@@ -5,10 +5,13 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 import xml.etree.ElementTree
 from pathlib import Path
+import subprocess
 import traceback
+import tempfile
 import logging
 import inspect
 import pprint
+import shutil
 import json
 import pdb
 import bdb
@@ -18,6 +21,7 @@ import io
 
 
 red = lambda s: f'\033[38;5;9m{s}\033[0m'
+BORING_MODULES = ['wtf', 'threading', 'bdb', 'weakref', 'logging']
 
 
 def _pythonise_var_name(heathenscript):
@@ -71,7 +75,7 @@ class WTF:
         if stop:
             print(W)
             if not hasattr(sys, 'ps1'):
-                pdb.Pdb(skip=['wtf']).set_trace()
+                pdb.Pdb(skip=BORING_MODULES).set_trace()
         return W
     def __getitem__(cls, x):
         return wtf(x, stop=False)
@@ -79,12 +83,12 @@ class WTF:
 
     @property
     def fields(self):
-        return list(filter(lambda p: not _is_boring(self.x, p) and not callable(getattr(self.x, p)), dir(self.x)))
+        return list(filter(lambda p: not _is_boring(self.x, p) and not callable(getattr(self.x, p, None)), dir(self.x)))
 
 
     @property
     def functions(self):
-        return list(filter(lambda p: not _is_boring(self.x, p) and callable(getattr(self.x, p)), dir(self.x)))
+        return list(filter(lambda p: not _is_boring(self.x, p) and callable(getattr(self.x, p, None)), dir(self.x)))
 
 
     def __repr__(self):
@@ -281,7 +285,8 @@ class WTF:
 
     def _source_var_name(self):
         if (source_line := self._source_line()) and (code := source_line.code):
-            if match := re.search(r'wtf\((\w+)\s*[,\)]', code):
+            #if match := re.search(r'wtf\((\w+)\s*[,\)]', code):
+            if match := re.search(r'wtf[\(\[](\w+)', code):
                 return match.group(1)
 
 
@@ -368,49 +373,50 @@ class WTF:
                 args_given_positionally += 1
             for param in list(inspect.signature(function).parameters.values())[args_given_positionally:]:
                 print(f'\t{param.name} = {wtf(kwargs[param.name], stop=False).short}')
-            pdb.Pdb(skip=['wtf']).set_trace()
+            pdb.Pdb(skip=BORING_MODULES).set_trace()
             returned = function(*args, **kwargs)
             print()
             print(f'Returns: {wtf(returned, stop=False)}')
-            pdb.Pdb(skip=['wtf']).set_trace()
+            pdb.Pdb(skip=BORING_MODULES).set_trace()
             return returned
         return wrapper
 
 
     def find(self, child_name):
+        print(f'Recursively analysing {self._name}. This could take a while.')
         results = list(self._find(child_name))
         for result in results:
             wtf(result)
-        else:
+        if not results:
             print(f'{child_name} not found inside {self._name}')
-        # TODO
-        #if name in self.fields:
-        #    return f'{self._name}.{name}'
-        #if name in self.
 
 
     def _find(self, child_name, max_depth=42):
         if max_depth <= 0:
             return
-        print(f'Looking in {self._name} ({self.short})')
-        if child_name in self.fields:
-            print(f'{child_name} is a field!')
+        #print(f'Looking in {self._name} ({self.short})')
+        for field_name in self.fields:
+            if child_name != None and field_name != child_name:
+                continue
+            #print(f'{field_name} is a field!')
             # Yield matching field.
-            yield Field(self._name, child_name, value=getattr(self.x, child_name))
+            yield Field(self._name, field_name, value=getattr(self.x, field_name))
 
         match self.x:
             case dict():
-                if child_name in self.x.keys():
-                    print(f'{child_name} is a key!')
+                for k, v in self.x.items():
+                    if child_name != None and k != child_name:
+                        continue
+                    #print(f'{k} is a key!')
                     # Yield matching dict key.
-                    yield Key(name=self._name, child_name=child_name, value=self.x[child_name])
+                    yield Key(name=self._name, child_name=k, value=v)
                 # Recurse into dict values.
                 for k, v in self.x.items():
                     dict_value_wtf = wtf(v, stop=False)
                     for dict_value_result in dict_value_wtf._find(child_name, max_depth=max_depth-1):
                         yield Key(name=self._name, child_name=k, child=dict_value_result, value=v)
             case list():
-                print(f'Looping over a {len(self.x)} item list...')
+                #print(f'Looping over a {len(self.x)} item list...')
                 # Loop over list, yield maching list (sub)items.
                 for list_item in self.x:
                     list_item_wtf = wtf(list_item, stop=False)
@@ -420,12 +426,61 @@ class WTF:
         # Recurse into fields.
         for field_name in self.fields:
             if not _is_boring(self.x, field_name):
-                print(f'Recursing into {self._name}.{field_name}')
+                #print(f'Recursing into {self._name}.{field_name}')
                 value = getattr(self.x, field_name)
                 field_wtf = wtf(value, stop=False)
-                field_wtf.name = field_name
+                field_wtf._name = field_name
                 for field_result in field_wtf._find(child_name, max_depth=max_depth-1):
                     yield Field(self._name, child_name=field_name, child=field_result, value=value)
+
+
+    def browse(self):
+        print(f'Recursively analysing {self._name}. This could take a while.')
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            root_dir = Path(tmpdirname)
+            info_path = root_dir/'wtf.txt'
+            info_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(info_path, 'w') as f:
+                f.write(str(self))
+            #self._object_to_file(self.x, path=root_dir)
+            for child_object in self._find(None):
+                info_path = root_dir/child_object.as_file_path()/'wtf.txt'
+                info_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(info_path, 'w') as f:
+                    f.write(str(wtf[child_object.value]))
+                code_path = root_dir/child_object.as_file_path()/'code.py'
+                with open(code_path, 'w') as f:
+                    f.write(child_object.code(use_parent_name=True))
+
+            for file_explorer in [
+                    'ranger',
+                    'mc',
+                    ]:
+                if shutil.which(file_explorer):
+                    print(f'Opening {root_dir}')
+                    subprocess.run([file_explorer, str(root_dir)])
+                    break
+            else:
+                raise RuntimeError(
+                        f'No terminal-based file browser found to open {root_dir}')
+
+    def is_happening_with(self, x):
+        return HyperSensitive(x)
+
+
+# TODO: Extend and expose.
+class HyperSensitive:
+    def __init__(self, subject):
+        self.subject = subject
+    def __getattribute__(self, thing):
+        print(f'They\'re trying to touch my {thing}!')
+        breakpoint()
+        wtf(super().subject.thing)
+    def __reversed__(self):
+        print(f'They\'re trying to reverse me!')
+        if not hasattr(sys, 'ps1'):
+            pdb.Pdb(skip=BORING_MODULES).set_trace()
+
 
 
 @dataclass
@@ -447,15 +502,21 @@ class Object:
             scaffolding = f'{remaining.name} = {scaffolding}\n{remaining.code()}'
         return scaffolding
 
+    def as_file_path(self):
+        if not (unsafe_child_name := getattr(self, 'child_name')):
+            unsafe_child_name = str(self.child)
+        safe_child_name = re.sub(r'[^\d\w \-]+', '_', unsafe_child_name)
+        return Path(self.name)/Path(safe_child_name)
+
 
 @dataclass
 class Field(Object):
     child_name: str = None
 
     def as_oneliner(self, use_parent_name=False):
-        s = f'{use_parent_name and self.name or ""}.{self.child_name}'
-        if self.child == None:
-            return (None, s, None)
+        s = f'{use_parent_name and self.name or ""}.{self.child_name or self.child}'
+        if not isinstance(self.child, Object):
+            return (s, None)
         else:
             child_match, remaining = self.child.as_oneliner()
             return (f'{s}{child_match}', remaining)
@@ -505,10 +566,9 @@ def wtf_excepthook(type, value, trace_back):
         return
     traceback.print_tb(trace_back)
     print(wtf[value])
-    p = pdb.Pdb(skip=['wtf'])
+    p = pdb.Pdb(skip=BORING_MODULES)
     p.reset()
     p.interaction(None, trace_back)
-    p.set_trace()
 sys.excepthook = wtf_excepthook
 
 if not logging.getLogger().isEnabledFor(logging.DEBUG):
