@@ -137,14 +137,17 @@ class WTF:
                         lines.append(f'{k}:\t{wtf(v, stop=False).short}')
             case json.decoder.JSONDecodeError() if (match := re.search(r'char (\d+)', str(self.x))):
                 lines.append(self._machine_readable_string_representation)
-                char_number = min(int(match.group(1)), len(self.x.doc)-1)
-                context_snippet_length = 80
-                context_before = UnIronic(self.x.doc[char_number-((context_snippet_length//2)-2):char_number])
-                bad = UnIronic(self.x.doc[char_number])
-                context_after = UnIronic(self.x.doc[char_number:char_number+((context_snippet_length//2)-2)])
-                lines.append(context_before + red(bad) + context_after)
-                if 0 <= ord(self.x.doc[char_number]) <= 31:
-                    lines.append(f'hint: json.loads(s, strict=False)')
+                try:
+                    char_number = min(int(match.group(1)), len(self.x.doc)-1)
+                    context_snippet_length = 80
+                    context_before = UnIronic(self.x.doc[char_number-((context_snippet_length//2)-2):char_number])
+                    bad = UnIronic(self.x.doc[char_number])
+                    context_after = UnIronic(self.x.doc[char_number:char_number+((context_snippet_length//2)-2)])
+                    lines.append(context_before + red(bad) + context_after)
+                    if 0 <= ord(self.x.doc[char_number]) <= 31:
+                        lines.append(f'hint: json.loads(s, strict=False)')
+                except:
+                    pass
             case _:
                 if isinstance(self.x, Exception):
                     lines.append(self._fully_qualified_type_name)
